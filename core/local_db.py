@@ -333,6 +333,20 @@ def create_workspace(user_id: str, name: str) -> str:
     conn.close()
     return ws_id
 
+def get_or_create_workspace(user_id: str) -> str:
+    """Helper for CLI and agents to ensure a workspace exists."""
+    conn = _get_connection()
+    c = conn.cursor()
+    c.execute("SELECT id FROM workspaces WHERE user_id = ? LIMIT 1", (user_id,))
+    row = c.fetchone()
+    conn.close()
+    
+    if row:
+        return row['id']
+    else:
+        # Create a default workspace for this user
+        return create_workspace(user_id, "Default Workspace")
+
 def get_workspaces_for_user(user_id: str) -> List[Dict]:
     conn = _get_connection()
     c = conn.cursor()

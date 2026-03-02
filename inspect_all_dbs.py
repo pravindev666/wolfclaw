@@ -27,6 +27,11 @@ def inspect_db(db_path):
             c.execute("SELECT * FROM vault")
             for row in c.fetchall():
                 print(dict(row))
+        if 'sessions' in tables:
+            print("--- SESSIONS ---")
+            c.execute("SELECT * FROM sessions")
+            for row in c.fetchall():
+                print(dict(row))
     except Exception as e:
         print(f"Error: {e}")
     finally:
@@ -37,3 +42,4 @@ if __name__ == "__main__":
     inspect_db("local_wolfclaw.db")
     inspect_db("wolfclaw_local.db")
     inspect_db("wolfclaw.db")
+    inspect_db(os.path.expanduser("~/.wolfclaw/wolfclaw_local.db"))
