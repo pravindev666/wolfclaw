@@ -1143,11 +1143,44 @@
                         <p style="margin-top: 10px; font-weight: bold; color: var(--success-color);">
                             Status: Vault backend is Active and Protected.
                         </p>
-                        <p style="font-size: 0.85em; margin-top: 10px; opacity: 0.8;">
-                            Note: Full GUI management for Vault entries is currently accessible via the Streamlit
-                            Dashboard (`streamlit run ui/views.py`). Native HTML Vault entry forms will be fully enabled
-                            in the next update.
-                        </p>
+                    </div>
+
+                    <div style="margin-top:20px; display:grid; grid-template-columns: 1fr 2fr; gap:20px;">
+                        <!-- Add Secret Form -->
+                        <div class="card">
+                            <h3>Add New Secret</h3>
+                            <form id="vault-add-form" style="margin-top:10px;">
+                                <div style="margin-bottom:10px;">
+                                    <label style="font-size:0.8em; color:var(--text-muted);">Label (e.g. My OpenAI
+                                        Key)</label>
+                                    <input type="text" id="vault-label" class="chat-input" placeholder="Label" required>
+                                </div>
+                                <div style="margin-bottom:10px;">
+                                    <label style="font-size:0.8em; color:var(--text-muted);">Secret Value</label>
+                                    <input type="password" id="vault-value" class="chat-input"
+                                        placeholder="Secret Value" required>
+                                </div>
+                                <div style="margin-bottom:10px;">
+                                    <label style="font-size:0.8em; color:var(--text-muted);">Category</label>
+                                    <select id="vault-category" class="chat-input">
+                                        <option value="general">General</option>
+                                        <option value="api_key">API Key</option>
+                                        <option value="password">Password</option>
+                                        <option value="env_var">Env Var</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-full" style="width:100%;">Save to
+                                    Vault</button>
+                            </form>
+                        </div>
+
+                        <!-- Stored Secrets List -->
+                        <div class="card">
+                            <h3>Stored Secrets</h3>
+                            <div id="vault-list" style="margin-top:10px;">
+                                <p style="color:var(--text-muted);">Loading secrets...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

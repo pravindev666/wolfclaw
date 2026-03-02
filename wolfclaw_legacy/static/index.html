@@ -182,6 +182,9 @@
                     <a href="#" class="nav-item" data-view="channels">
                         <i class="fa-brands fa-telegram"></i> Deploy Channels
                     </a>
+                    <a href="#" class="nav-item" data-view="vault">
+                        <i class="fa-solid fa-shield-halved"></i> Secrets Vault
+                    </a>
                     <a href="#" class="nav-item" data-view="settings">
                         <i class="fa-solid fa-gear"></i> Settings
                     </a>
@@ -918,6 +921,47 @@
                     </div>
                 </div>
 
+                <!-- Secrets Vault -->
+                <div id="view-vault" class="view-panel hidden">
+                    <h1><i class="fa-solid fa-shield-halved"></i> Secrets Vault</h1>
+                    <p>Securely store API keys, passwords, and sensitive data using fleet-standard AES-GCM encryption.
+                    </p>
+
+                    <div class="card" style="margin-top:20px;">
+                        <h3><i class="fa-solid fa-plus"></i> Add New Secret</h3>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:15px;">
+                            <div class="form-group">
+                                <label>Label / Name</label>
+                                <input type="text" id="vault-label" placeholder="e.g. My OpenAI Key"
+                                    class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select id="vault-category" class="form-control">
+                                    <option value="api_key">API Key</option>
+                                    <option value="password">Password</option>
+                                    <option value="ssh_key">SSH Key</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top:10px;">
+                            <label>Secret Value</label>
+                            <input type="password" id="vault-value" placeholder="Paste sensitive data here..."
+                                class="form-control">
+                        </div>
+                        <button class="btn btn-primary" style="margin-top:10px;" onclick="addSecret()">
+                            <i class="fa-solid fa-lock"></i> Encrypt & Save to Vault
+                        </button>
+                    </div>
+
+                    <div class="card" style="margin-top:20px;">
+                        <h3><i class="fa-solid fa-vault"></i> Your Stored Secrets</h3>
+                        <div id="vault-list" style="margin-top:15px;">
+                            <p style="color:var(--text-muted);">Loading vault...</p>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
     </div>

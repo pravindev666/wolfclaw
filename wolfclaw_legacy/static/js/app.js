@@ -128,6 +128,93 @@ function switchView(viewName) {
     if (viewName === 'channels') loadChannelBots();
     if (viewName === 'ai-roles') loadTemplateGallery();
     if (viewName === 'saved') loadSavedResponses();
+    if (viewName === 'vault') loadVault();
+}
+
+function getAuthHeader() {
+    const saved = localStorage.getItem('wolfclaw-auth');
+    if (!saved) return {};
+    const user = JSON.parse(saved);
+    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user.id}` };
+}
+
+// ==========================================
+// SECRETS VAULT
+// ==========================================
+
+async function loadVault() {
+    const listEl = document.getElementById('vault-list');
+    if (!listEl) return;
+
+    try {
+        const resp = await fetch(`${API_BASE}/vault`, { headers: getAuthHeader() });
+        const data = await resp.json();
+
+        if (data.status === 'success') {
+            if (!data.secrets || data.secrets.length === 0) {
+                listEl.innerHTML = '<p style="color:var(--text-muted); font-size:0.9em;">Your vault is empty. Secure your first secret above.</p>';
+                return;
+            }
+
+            let html = '<table style="width:100%; border-collapse: collapse; font-size:0.9em;">';
+            html += '<tr style="text-align:left; border-bottom:1px solid var(--border-color); color:var(--text-muted);"><th>Label</th><th>Category</th><th>Action</th></tr>';
+
+            data.secrets.forEach(s => {
+                html += `<tr style="border-bottom: 1px solid rgba(128,128,128,0.1);">
+                    <td style="padding:10px 0;"><strong>${s.label}</strong></td>
+                    <td style="padding:10px 0;"><span style="background:rgba(128,128,128,0.1); padding:2px 8px; border-radius:4px; font-size:0.8em;">${s.category}</span></td>
+                    <td style="padding:10px 0;"><button class="btn btn-sm btn-danger" onclick="deleteSecret('${s.id}')">Delete</button></td>
+                </tr>`;
+            });
+            html += '</table>';
+            listEl.innerHTML = html;
+        }
+    } catch (e) {
+        listEl.innerHTML = `<p style="color:var(--danger-color);">Error: ${e.message}</p>`;
+    }
+}
+
+async function addSecret() {
+    const label = document.getElementById('vault-label').value;
+    const category = document.getElementById('vault-category').value;
+    const value = document.getElementById('vault-value').value;
+
+    if (!label || !value) return alert("Label and Secret Value are required.");
+
+    try {
+        const resp = await fetch(`${API_BASE}/vault`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+            body: JSON.stringify({ label, category, value })
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+            alert("Secret encrypted and saved.");
+            document.getElementById('vault-label').value = '';
+            document.getElementById('vault-value').value = '';
+            loadVault();
+        } else {
+            alert("Failed to save: " + data.detail);
+        }
+    } catch (e) {
+        alert("Error: " + e.message);
+    }
+}
+
+async function deleteSecret(id) {
+    if (!confirm("Are you sure? This action is irreversible.")) return;
+
+    try {
+        const resp = await fetch(`${API_BASE}/vault/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeader()
+        });
+        if (resp.ok) {
+            loadVault();
+        }
+    } catch (e) {
+        alert("Error deleting secret.");
+    }
 }
 
 function toggleNewBotForm() {
@@ -309,7 +396,7 @@ async function handleCreateBot(e) {
     const model = document.getElementById('new-bot-model').value;
     const prompt = document.getElementById('new-bot-prompt').value;
 
-    const resp = await fetch(`${API_BASE}/bots/`, {
+    const resp = await fetch(`${API_BASE}/bots`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, model, prompt })

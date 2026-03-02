@@ -327,7 +327,7 @@ async function handleCreateBot(e) {
     const model = document.getElementById('new-bot-model').value;
     const prompt = document.getElementById('new-bot-prompt').value;
 
-    const resp = await fetch(`${API_BASE}/bots/`, {
+    const resp = await fetch(`${API_BASE}/bots`, {
         method: 'POST',
         headers: {
             ...getAuthHeader(),
@@ -2691,6 +2691,7 @@ if (typeof switchView === 'function') {
         else if (viewName === 'war-room') loadWarRoomBots();
         else if (viewName === 'integrations') loadIntegrationsStatus();
         else if (viewName === 'marketplace') loadMarketplace();
+        else if (viewName === 'vault') loadVault();
     };
 }
 
@@ -3523,19 +3524,23 @@ async function toggleMacroRecording() {
 
 async function loadMarketplace() {
     const listEl = document.getElementById('marketplace-list');
+    if (!listEl) return;
     listEl.innerHTML = '<p style="color:var(--text-muted);">Loading plugins...</p>';
 
     try {
         const [storeRes, installedRes] = await Promise.all([
-            fetch(`${API_BASE}/marketplace/`),
-            fetch(`${API_BASE}/marketplace/installed`)
+            fetch(`${API_BASE}/marketplace/plugins`, { headers: getAuthHeader() }),
+            fetch(`${API_BASE}/marketplace/installed`, { headers: getAuthHeader() })
         ]);
+
+        if (!storeRes.ok) throw new Error('Failed to fetch marketplace plugins');
+        if (!installedRes.ok) throw new Error('Failed to fetch installed plugins');
 
         const storeData = await storeRes.json();
         const instData = await installedRes.json();
         const installedIds = instData.installed || [];
 
-        if (storeData.plugins.length === 0) {
+        if (!storeData || !storeData.plugins || storeData.plugins.length === 0) {
             listEl.innerHTML = '<p style="color:var(--text-muted);">No plugins available in the store yet.</p>';
             return;
         }
@@ -3704,130 +3709,8 @@ async function importFlowTemplate(templateId) {
     }
 }
 
-// ==========================================
-// PLUGIN MARKETPLACE
-// ==========================================
-async function loadMarketplacePlugins(tab = 'store') {
-    // Update button styling
-    document.getElementById('btn-market-store').className = tab === 'store' ? 'btn btn-primary' : 'btn btn-secondary';
-    document.getElementById('btn-market-installed').className = tab === 'installed' ? 'btn btn-primary' : 'btn btn-secondary';
+// --- End of Marketplace Section ---
 
-    const container = document.getElementById('marketplace-list');
-    container.innerHTML = '<p style="color:var(--text-muted);">Loading plugins...</p>';
-
-    try {
-        if (tab === 'store') {
-            const resp = await fetch(`${API_BASE}/marketplace`, { headers: getAuthHeader() });
-            const data = await resp.json();
-
-            // Also fetch installed plugins to show correct button state
-            const installedResp = await fetch(`${API_BASE}/marketplace/installed`, { headers: getAuthHeader() });
-            const installedData = await installedResp.json();
-
-            renderMarketplaceStore(data.plugins, installedData.installed);
-        } else {
-            const resp = await fetch(`${API_BASE}/marketplace/installed`, { headers: getAuthHeader() });
-            const data = await resp.json();
-            renderMarketplaceInstalled(data.installed);
-        }
-    } catch (err) {
-        container.innerHTML = `<p style="color:var(--danger-color);">Error loading marketplace: ${err.message}</p>`;
-    }
-}
-
-function renderMarketplaceStore(plugins, installedList) {
-    const container = document.getElementById('marketplace-list');
-    container.innerHTML = '';
-
-    if (!plugins || plugins.length === 0) {
-        container.innerHTML = '<p style="color:var(--text-muted);">No plugins available in the store right now.</p>';
-        return;
-    }
-
-    plugins.forEach(p => {
-        const isInstalled = installedList.includes(p.id);
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.style.cssText = 'display:flex; flex-direction:column; justify-content:space-between; height:100%;';
-        card.innerHTML = `
-            <div>
-                <h3 style="margin-top:0; margin-bottom:5px;">${p.name}</h3>
-                <span style="font-size:0.8em; color:var(--text-muted);">by ${p.author} | ${p.downloads} Dls</span>
-                <p style="font-size:0.9em; margin-top:10px; color:var(--text-color);">${p.description}</p>
-            </div>
-            <div style="margin-top:15px;">
-                ${isInstalled ?
-                `<button class="btn btn-secondary btn-sm" disabled style="width:100%;">Installed <i class="fa-solid fa-check"></i></button>` :
-                `<button class="btn btn-primary btn-sm" onclick="installPlugin('${p.id}')" style="width:100%;">Install <i class="fa-solid fa-download"></i></button>`
-            }
-            </div>
-        `;
-        container.appendChild(card);
-    });
-}
-
-function renderMarketplaceInstalled(installedIds) {
-    const container = document.getElementById('marketplace-list');
-    container.innerHTML = '';
-
-    if (!installedIds || installedIds.length === 0) {
-        container.innerHTML = '<p style="color:var(--text-muted);">No plugins installed yet.</p>';
-        return;
-    }
-
-    installedIds.forEach(id => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.style.cssText = 'display:flex; justify-content:space-between; align-items:center; border-left:4px solid var(--success-color);';
-        card.innerHTML = `
-            <div>
-                <h3 style="margin:0;">${id}</h3>
-                <p style="font-size:0.8em; color:var(--text-muted); margin:4px 0 0 0;">Local Plugin Script</p>
-            </div>
-            <button class="btn btn-danger btn-sm" onclick="uninstallPlugin('${id}')">
-                <i class="fa-solid fa-trash"></i> Uninstall
-            </button>
-        `;
-        container.appendChild(card);
-    });
-}
-
-async function installPlugin(pluginId) {
-    try {
-        const resp = await fetch(`${API_BASE}/marketplace/install/${pluginId}`, {
-            method: 'POST',
-            headers: getAuthHeader()
-        });
-        const data = await resp.json();
-        if (resp.ok) {
-            alert("✅ " + data.message);
-            loadMarketplacePlugins('store'); // refresh
-        } else {
-            alert('Failed: ' + (data.detail || 'Unknown error'));
-        }
-    } catch (err) {
-        alert('Error installing plugin: ' + err.message);
-    }
-}
-
-async function uninstallPlugin(pluginId) {
-    if (!confirm("Are you sure you want to uninstall " + pluginId + "?")) return;
-    try {
-        const resp = await fetch(`${API_BASE}/marketplace/uninstall/${pluginId}`, {
-            method: 'POST',
-            headers: getAuthHeader()
-        });
-        const data = await resp.json();
-        if (resp.ok) {
-            alert("✅ " + data.message);
-            loadMarketplacePlugins('installed'); // refresh
-        } else {
-            alert('Failed: ' + (data.detail || 'Unknown error'));
-        }
-    } catch (err) {
-        alert('Error uninstalling plugin: ' + err.message);
-    }
-}
 
 async function checkLocalAI() {
     try {
@@ -3843,10 +3726,6 @@ async function checkLocalAI() {
         // Ollama not running or blocked
     }
 }
-
-// ==========================================
-// WAR ROOM / SWARM LOGIC
-// ==========================================
 async function loadWarRoom() {
     try {
         const resp = await fetch(`${API_BASE}/bots`, { headers: getAuthHeader() });
@@ -4658,3 +4537,95 @@ async function analyzeMacroSession() {
         alert("Connection error during analysis.");
     }
 }
+
+// ==========================================
+// SECRETS VAULT
+// ==========================================
+
+async function loadVault() {
+    const listEl = document.getElementById('vault-list');
+    if (!listEl) return;
+    listEl.innerHTML = '<p style="color:var(--text-muted);">Loading secrets...</p>';
+
+    try {
+        const resp = await fetch(`${API_BASE}/vault`, { headers: getAuthHeader() });
+        const data = await resp.json();
+
+        if (!data.secrets || data.secrets.length === 0) {
+            listEl.innerHTML = '<p style="color:var(--text-muted);">No secrets stored yet. Add one on the left!</p>';
+            return;
+        }
+
+        listEl.innerHTML = data.secrets.map(s => `
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-left: 3px solid var(--accent-color);">
+                <div>
+                    <h4 style="margin:0;">${s.label}</h4>
+                    <span class="badge" style="font-size:0.7em;">${s.category}</span>
+                    <span style="font-size:0.75em; color:var(--text-muted); margin-left:10px;">ID: ${s.id}</span>
+                </div>
+                <div>
+                    <button class="btn btn-danger btn-sm" onclick="deleteVaultSecret('${s.id}')">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        listEl.innerHTML = `<p style="color:var(--danger-color);">Error loading vault: ${e.message}</p>`;
+    }
+}
+
+async function addVaultSecret(e) {
+    if (e) e.preventDefault();
+    const label = document.getElementById('vault-label').value;
+    const value = document.getElementById('vault-value').value;
+    const category = document.getElementById('vault-category').value;
+
+    try {
+        const resp = await fetch(`${API_BASE}/vault`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+            body: JSON.stringify({ label, value, category })
+        });
+
+        if (resp.ok) {
+            alert('✅ Secret stored securely in the vault.');
+            document.getElementById('vault-add-form').reset();
+            loadVault();
+        } else {
+            const data = await resp.json();
+            alert('Failed to store secret: ' + (data.detail || 'Unknown error'));
+        }
+    } catch (err) {
+        alert('Vault API Error: ' + err.message);
+    }
+}
+
+async function deleteVaultSecret(id) {
+    if (!confirm('Are you sure you want to permanently delete this secret?')) return;
+
+    try {
+        const resp = await fetch(`${API_BASE}/vault/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeader()
+        });
+
+        if (resp.ok) {
+            loadVault();
+        } else {
+            alert('Failed to delete secret.');
+        }
+    } catch (err) {
+        alert('Vault API Error: ' + err.message);
+    }
+}
+
+// ==========================================
+// INITIALIZATION
+// ==========================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Add event listeners for new forms
+    const vaultForm = document.getElementById('vault-add-form');
+    if (vaultForm) vaultForm.addEventListener('submit', addVaultSecret);
+});

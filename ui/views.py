@@ -770,7 +770,16 @@ def performance_tracker_view():
         with s_col3:
             st.write(f"**Ledger Size:** {metrics.get('total_calls', 0)} events")
             if st.button("📄 View Full Audit Ledger", key="view_ledger"):
-                st.info("Full ledger view coming in Phase 2.")
+                metric_file = METRICS_DIR / f"{selected_bot_id}_events.json"
+                if os.path.exists(metric_file):
+                    try:
+                        with open(metric_file, "r") as f:
+                            full_events = json.load(f)
+                        st.dataframe(pd.DataFrame(full_events).sort_values(by="timestamp", ascending=False))
+                    except Exception as e:
+                        st.error(f"Failed to load ledger: {e}")
+                else:
+                    st.info("No audit ledger found for this bot.")
 
         st.divider()
         
@@ -853,8 +862,19 @@ def sovereign_control_view():
         st.divider()
         st.subheader("Sync Status")
         if st.button("🔄 Force Hybrid Memory Sync"):
-            # Normally this happens automatically
-            st.info("Triggered global memory synchronization across the fleet.")
+            from core.sync import memory_sync
+            bots = get_bots()
+            if not bots:
+                st.warning("No bots to sync.")
+            else:
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+                for i, b_id in enumerate(bots.keys()):
+                    status_text.text(f"Syncing {bots[b_id]['name']}...")
+                    memory_sync.push_memory(b_id)
+                    memory_sync.pull_memory(b_id)
+                    progress_bar.progress((i + 1) / len(bots))
+                status_text.text("✅ Global memory synchronization complete.")
 
     with tabs[1]:
         st.subheader("Semantic Router Laboratory")
