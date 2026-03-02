@@ -41,7 +41,7 @@ async def onboarding_status():
     has_bot = bot_count > 0
 
     # Step 3: At least one chat sent?
-    chat_count = conn.execute("SELECT COUNT(*) as cnt FROM chat_histories").fetchone()["cnt"]
+    chat_count = conn.execute("SELECT COUNT(*) as cnt FROM chat_history").fetchone()["cnt"]
     has_chatted = chat_count > 0
 
     # Step 4: At least one flow created?

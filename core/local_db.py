@@ -135,7 +135,12 @@ def init_db():
         )
         ''')
 
-    # Chat history table
+    # --- Chat history table migration ---
+    c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='chat_histories'")
+    if c.fetchone():
+        print("[DB] Migrating 'chat_histories' to 'chat_history'...")
+        c.execute("ALTER TABLE chat_histories RENAME TO chat_history")
+    
     c.execute("PRAGMA table_info(chat_history)")
     if not c.fetchall():
         c.execute('''

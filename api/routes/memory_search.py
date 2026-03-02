@@ -12,7 +12,7 @@ async def search_memory(q: str = Query(..., min_length=1)):
     """Search all saved chat histories for a keyword or phrase."""
     conn = _get_connection()
     rows = conn.execute(
-        "SELECT id, bot_id, title, messages, updated_at FROM chat_histories"
+        "SELECT id, bot_id, title, messages, updated_at FROM chat_history"
     ).fetchall()
 
     results = []

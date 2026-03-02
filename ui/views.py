@@ -1101,7 +1101,7 @@ def memory_search_view():
         from core.local_db import _get_connection
         import json
         conn = _get_connection()
-        rows = conn.execute("SELECT id, title, messages, updated_at FROM chat_histories").fetchall()
+        rows = conn.execute("SELECT id, title, messages, updated_at FROM chat_history").fetchall()
         
         matches = []
         for r in rows:

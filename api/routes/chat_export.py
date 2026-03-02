@@ -14,7 +14,7 @@ async def export_chat(chat_id: str, format: str = "markdown"):
     """Export a chat as Markdown or plain text."""
     conn = _get_connection()
     row = conn.execute(
-        "SELECT title, messages, updated_at, bot_id FROM chat_histories WHERE id = ?", (chat_id,)
+        "SELECT title, messages, updated_at, bot_id FROM chat_history WHERE id = ?", (chat_id,)
     ).fetchone()
 
     if not row:

@@ -304,7 +304,7 @@ def memory_search(q: str):
     from core.local_db import _get_connection
     import json
     conn = _get_connection()
-    rows = conn.execute("SELECT id, title, messages FROM chat_histories").fetchall()
+    rows = conn.execute("SELECT id, title, messages FROM chat_history").fetchall()
     found = False
     for r in rows:
         msgs = json.loads(r["messages"]) if r["messages"] else []

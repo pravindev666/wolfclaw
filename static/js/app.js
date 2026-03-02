@@ -1749,7 +1749,7 @@ async function handleSaveApiKey(e) {
 
     if (!key) return;
 
-    const resp = await fetch(`${API_BASE}/settings`, {
+    const resp = await fetch(`${API_BASE}/settings/`, {
         method: 'POST',
         headers: {
             ...getAuthHeader(),

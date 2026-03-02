@@ -17,11 +17,11 @@ async def dashboard_home():
 
     # --- Chats Today ---
     chats_today = conn.execute(
-        "SELECT COUNT(*) as cnt FROM chat_histories WHERE date(updated_at) = ?", (today,)
+        "SELECT COUNT(*) as cnt FROM chat_history WHERE date(updated_at) = ?", (today,)
     ).fetchone()["cnt"]
 
     # --- Total Chats Ever ---
-    total_chats = conn.execute("SELECT COUNT(*) as cnt FROM chat_histories").fetchone()["cnt"]
+    total_chats = conn.execute("SELECT COUNT(*) as cnt FROM chat_history").fetchone()["cnt"]
 
     # --- Total Bots ---
     total_bots = conn.execute("SELECT COUNT(*) as cnt FROM bots").fetchone()["cnt"]
@@ -31,7 +31,7 @@ async def dashboard_home():
 
     # --- Most Active Bot (most chats) ---
     top_bot_row = conn.execute(
-        "SELECT bot_id, COUNT(*) as cnt FROM chat_histories GROUP BY bot_id ORDER BY cnt DESC LIMIT 1"
+        "SELECT bot_id, COUNT(*) as cnt FROM chat_history GROUP BY bot_id ORDER BY cnt DESC LIMIT 1"
     ).fetchone()
     top_bot = None
     if top_bot_row:
@@ -54,7 +54,7 @@ async def dashboard_home():
     sparkline = []
     try:
         rows = conn.execute(
-            "SELECT date(updated_at) as day, COUNT(*) as cnt FROM chat_histories WHERE updated_at >= date('now', '-7 days') GROUP BY day ORDER BY day"
+            "SELECT date(updated_at) as day, COUNT(*) as cnt FROM chat_history WHERE updated_at >= date('now', '-7 days') GROUP BY day ORDER BY day"
         ).fetchall()
         sparkline = [{"date": r["day"], "chats": r["cnt"]} for r in rows]
     except Exception:
