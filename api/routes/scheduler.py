@@ -13,7 +13,7 @@ from typing import Optional
 from core import local_db
 from core.bot_manager import _get_active_workspace_id
 
-from api.auth import get_current_user
+from api.deps import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/scheduler", tags=["Scheduler"])

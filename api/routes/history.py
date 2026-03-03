@@ -1,10 +1,12 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 import os
 
 from core import local_db
 from core.bot_manager import _get_active_workspace_id
+
+from api.deps import get_current_user
 
 router = APIRouter(prefix="/history", tags=["history"])
 
@@ -16,9 +18,9 @@ class SaveHistoryRequest(BaseModel):
 
 @router.get("/")
 @router.get("")
-async def list_history():
+async def list_history(user: dict = Depends(get_current_user)):
     """List all chat histories for the active workspace."""
-    ws_id = _get_active_workspace_id()
+    ws_id = _get_active_workspace_id(user_id=user["id"])
     try:
         histories = local_db.get_chat_histories(ws_id)
         return {"histories": histories}
@@ -26,7 +28,7 @@ async def list_history():
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{chat_id}")
-async def get_history(chat_id: str):
+async def get_history(chat_id: str, user: dict = Depends(get_current_user)):
     """Get a specific chat history by ID."""
     try:
         history = local_db.get_chat_history(chat_id)
@@ -38,9 +40,9 @@ async def get_history(chat_id: str):
 
 @router.post("/")
 @router.post("")
-async def save_history(req: SaveHistoryRequest):
+async def save_history(req: SaveHistoryRequest, user: dict = Depends(get_current_user)):
     """Save or update a chat history."""
-    ws_id = _get_active_workspace_id()
+    ws_id = _get_active_workspace_id(user_id=user["id"])
     try:
         chat_id = local_db.save_chat_history(
             ws_id=ws_id,
@@ -54,7 +56,7 @@ async def save_history(req: SaveHistoryRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/{chat_id}")
-async def delete_history(chat_id: str):
+async def delete_history(chat_id: str, user: dict = Depends(get_current_user)):
     """Delete a chat history."""
     try:
         local_db.delete_chat_history(chat_id)

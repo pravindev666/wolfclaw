@@ -11,11 +11,18 @@ def _get_connection():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     conn = sqlite3.connect(DB_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
+    # WAL mode is now handled in init_db to prevent race conditions
     return conn
 
 def init_db():
     conn = _get_connection()
+    try:
+        # Enable WAL mode once during initialization
+        conn.execute("PRAGMA journal_mode=WAL")
+    except sqlite3.OperationalError:
+        # If locked, we'll try again next time or fall back to standard mode
+        pass
+    
     c = conn.cursor()
     
     c.execute('''
@@ -576,7 +583,7 @@ def store_recovery_token(user_id: str, token: str):
     conn.commit()
     conn.close()
 
-init_db()
+# init_db()  <-- MOVED to explicit call in launcher
 
 # -------------------------------------------------------------------------------------
 # Documents (File Upload for Context)

@@ -2186,7 +2186,9 @@ async function loadChatHistorySidebar() {
 
 async function resumeChat(historyId) {
     try {
-        const resp = await fetch(`${API_BASE}/history/${historyId}`);
+        const resp = await fetch(`${API_BASE}/history/${historyId}`, {
+            headers: getAuthHeader()
+        });
         if (!resp.ok) throw new Error("Could not load chat");
 
         const historyData = await resp.json();
@@ -2234,7 +2236,8 @@ async function deleteChatHistory(historyId) {
 
     try {
         const resp = await fetch(`${API_BASE}/history/${historyId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: getAuthHeader()
         });
 
         if (resp.ok) {
@@ -2327,6 +2330,7 @@ async function uploadKnowledgeDoc() {
     try {
         const resp = await fetch(`${API_BASE}/knowledge/upload`, {
             method: 'POST',
+            headers: getAuthHeader(),
             body: formData
         });
         const data = await resp.json();
@@ -2346,7 +2350,10 @@ async function uploadKnowledgeDoc() {
 async function deleteKnowledgeDoc(docId) {
     if (!confirm('Delete this document and all its chunks from the knowledge base?')) return;
     try {
-        await fetch(`${API_BASE}/knowledge/${docId}`, { method: 'DELETE' });
+        await fetch(`${API_BASE}/knowledge/${docId}`, {
+            method: 'DELETE',
+            headers: getAuthHeader()
+        });
         loadBotKnowledge();
     } catch (err) {
         alert('Failed to delete.');
@@ -2386,7 +2393,10 @@ async function createScheduledTask() {
     try {
         const resp = await fetch(`${API_BASE}/scheduler/tasks`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                ...getAuthHeader(),
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
                 bot_id: botId, name, prompt,
                 schedule_type: type, schedule_value: value

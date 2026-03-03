@@ -12,7 +12,7 @@ from typing import Optional
 from core import local_db
 from core.rag_engine import chunk_text, extract_keywords, search_chunks
 
-from api.auth import get_current_user
+from api.deps import get_current_user
 
 router = APIRouter(prefix="/knowledge", tags=["Knowledge Base"])
 
