@@ -114,11 +114,11 @@ def list_all_secrets():
     ]
 
 # Maintain legacy provider-based helpers for llm_engine
-def encrypt_key(provider: str, key_value: str):
+def encrypt_key(provider: str, key_value: str, user_id: str = None):
     """Bridge function for provider-based keys."""
     return encrypt_secret(provider, key_value, category="api_key", secret_id=f"provider_{provider}")
 
-def decrypt_key(provider: str) -> str:
+def decrypt_key(provider: str, user_id: str = None) -> str:
     """Bridge function for provider-based keys."""
     sec = decrypt_secret(f"provider_{provider}")
     return sec["value"] if sec else ""

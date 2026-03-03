@@ -1,11 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request, BackgroundTasks
 from pydantic import BaseModel
 from typing import Optional
 import os
 import sys
 import subprocess
 import httpx
-from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
 
 from core import local_db, bot_manager
 from core.bot_manager import _get_active_workspace_id
@@ -100,7 +99,9 @@ async def start_telegram_worker(req: TelegramStartRequest, user: dict = Depends(
         
         # Load SSH credentials into env for tool usage
         workspace_id = _get_active_workspace_id(user_id=user["id"])
-        ssh_data = local_db.get_workspace_ssh(workspace_id)
+        ssh_data_list = local_db.get_workspace_ssh(workspace_id)
+        ssh_data = ssh_data_list[0] if ssh_data_list else {}
+        
         env["WOLFCLAW_SSH_HOST"] = ssh_data.get("host", "")
         env["WOLFCLAW_SSH_PORT"] = str(ssh_data.get("port", "22"))
         env["WOLFCLAW_SSH_USER"] = ssh_data.get("user", "ubuntu")
