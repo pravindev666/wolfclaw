@@ -147,7 +147,10 @@ def main():
         logger.info("Initializing PyWebView window...")
         # Note: private_mode=False is important for local storage persistence
         webview.create_window('Wolfclaw AI Command Center', url, width=1280, height=800)
-        webview.start(private_mode=False, debug=getattr(sys, 'frozen', False)) 
+        
+        # Turn off debug mode in the frozen executable to prevent DevTools from popping up
+        is_frozen = getattr(sys, 'frozen', False)
+        webview.start(private_mode=False, debug=not is_frozen) 
     except Exception as e:
         logger.error(f"Native window failed, falling back to browser: {e}")
         webbrowser.open(url)

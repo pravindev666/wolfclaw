@@ -10,12 +10,15 @@ DB_PATH = os.path.join(os.path.expanduser("~"), ".wolfclaw", "wolfclaw_local.db"
 
 def _get_connection():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
+    # Added timeout to prevent "database is locked" errors
+    conn = sqlite3.connect(DB_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
     return conn
 
 def init_db():
     conn = _get_connection()
+    # Enable WAL mode for better concurrency
+    conn.execute("PRAGMA journal_mode=WAL")
     c = conn.cursor()
     
     c.execute('''
@@ -435,7 +438,9 @@ def store_recovery_token(user_id: str, token: str):
     conn.commit()
     conn.close()
 
-init_db()
+# Removed module-level init_db() to prevent locking during multiple imports.
+# Launcher should call this once.
+# init_db()
 
 # -------------------------------------------------------------------------------------
 # Documents (File Upload for Context)
@@ -787,4 +792,6 @@ def delete_flow(flow_id: str):
     conn.commit()
     conn.close()
 
-init_db()
+# Removed module-level init_db() to prevent locking during multiple imports.
+# Launcher should call this once.
+# init_db()

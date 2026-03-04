@@ -3,6 +3,7 @@ import subprocess
 import sys
 import shutil
 from pathlib import Path
+import litellm
 
 def build_windows_exe():
     """Build the Wolfclaw Desktop Engine into a standalone Windows executable."""
@@ -59,6 +60,9 @@ def build_windows_exe():
         # This copies everything we just staged above (including api/ and static/)
         f"--add-data", f"{staging_dir}{sep}wolfclaw_app",
         
+        # Explicitly bundle all of litellm to include the JSON data files that --collect-all sometimes misses
+        f"--add-data", f"{os.path.dirname(litellm.__file__)}{sep}litellm",
+        
         # Collect FastAPI, Uvicorn, and LiteLLM runtime dependencies
         "--collect-all", "litellm",
         "--collect-all", "uvicorn",
@@ -92,7 +96,9 @@ def build_windows_exe():
         cli_script = project_root / "cli.py"
         cli_command = [
             sys.executable, "-m", "PyInstaller",
-            "--noconfirm", "--onefile", "--console",
+            "--noconfirm", 
+            "--onedir",      # Switched from --onefile to --onedir for Windows Stability
+            "--console",
             "--name", "Wolfclaw_CLI",
             "--clean",
             f"--add-data", f"{staging_dir}{sep}wolfclaw_app",
@@ -101,7 +107,10 @@ def build_windows_exe():
             "--hidden-import", "rich",
             str(cli_script)
         ]
-        subprocess.run(cli_command, check=True)
+        # Set PYTHONHASHSEED for build reproducibility and some PyInstaller stability
+        env = os.environ.copy()
+        env["PYTHONHASHSEED"] = "42"
+        subprocess.run(cli_command, check=True, env=env)
         print("\n" + "="*50)
         print("  BUILD SUCCESSFUL!")
         print("="*50)

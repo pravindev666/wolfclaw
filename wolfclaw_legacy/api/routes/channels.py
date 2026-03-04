@@ -98,7 +98,9 @@ async def start_telegram_worker(req: TelegramStartRequest):
         
         # Load SSH credentials into env for tool usage
         workspace_id = _get_active_workspace_id()
-        ssh_data = local_db.get_workspace_ssh(workspace_id)
+        ssh_data_list = local_db.get_workspace_ssh(workspace_id)
+        ssh_data = ssh_data_list[0] if ssh_data_list else {}
+        
         env["WOLFCLAW_SSH_HOST"] = ssh_data.get("host", "")
         env["WOLFCLAW_SSH_PORT"] = str(ssh_data.get("port", "22"))
         env["WOLFCLAW_SSH_USER"] = ssh_data.get("user", "ubuntu")
