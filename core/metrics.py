@@ -3,9 +3,10 @@ import json
 import time
 from datetime import datetime
 from pathlib import Path
+from core.paths import get_data_dir
 
 # Base directory for metrics data
-METRICS_DIR = Path("data/metrics")
+METRICS_DIR = get_data_dir() / "metrics"
 METRICS_DIR.mkdir(parents=True, exist_ok=True)
 
 def _get_metric_file(bot_id: str) -> Path:

@@ -13,7 +13,14 @@ echo "Step 1: Running PyInstaller..."
 staging_dir="build/wolfclaw_app"
 mkdir -p "$staging_dir"
 cp -r core auth channels api static "$staging_dir/"
+LITELLM_PATH=$(python3 -c "import litellm; import os; print(os.path.dirname(litellm.__file__))")
 
+pyinstaller --noconfirm --onedir --windowed --name Wolfclaw --clean \
+    --add-data "$staging_dir:wolfclaw_app" \
+    --add-data "$LITELLM_PATH:litellm" \
+    --hidden-import uvicorn --hidden-import fastapi --hidden-import pydantic \
+    --collect-data litellm \
+    --collect-all uvicorn --collect-all fastapi \
     --hidden-import pyautogui --hidden-import playwright --hidden-import PIL --hidden-import webview --hidden-import pyperclip \
     desktop_launcher.py
 
@@ -21,6 +28,7 @@ cp -r core auth channels api static "$staging_dir/"
 echo "Step 1b: Running PyInstaller for CLI..."
 pyinstaller --noconfirm --onefile --console --name Wolfclaw_CLI --clean \
     --add-data "$staging_dir:wolfclaw_app" \
+    --add-data "$LITELLM_PATH:litellm" \
     --hidden-import typer --hidden-import rich --hidden-import pyperclip \
     --collect-data litellm \
     cli.py

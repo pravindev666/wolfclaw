@@ -4,10 +4,11 @@ import hashlib
 import logging
 from pathlib import Path
 from typing import List, Optional, Dict
+from core.paths import get_data_dir
 
 logger = logging.getLogger(__name__)
 
-VECTOR_DIR = Path("data/vector_cache")
+VECTOR_DIR = get_data_dir() / "vector_cache"
 VECTOR_DIR.mkdir(parents=True, exist_ok=True)
 
 class VectorCache:

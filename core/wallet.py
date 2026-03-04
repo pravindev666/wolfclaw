@@ -3,8 +3,9 @@ import json
 import threading
 from datetime import datetime, date
 from pathlib import Path
+from core.paths import get_data_dir
 
-WALLET_DIR = Path("data/wallet")
+WALLET_DIR = get_data_dir() / "wallet"
 WALLET_DIR.mkdir(parents=True, exist_ok=True)
 
 _wallet_lock = threading.Lock()

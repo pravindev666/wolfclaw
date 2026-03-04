@@ -3,6 +3,7 @@ import subprocess
 import sys
 import shutil
 from pathlib import Path
+import litellm
 
 def build_windows_exe():
     """Build the Wolfclaw Desktop Engine into a standalone Windows executable."""
@@ -58,6 +59,9 @@ def build_windows_exe():
         # Bundle the entire Wolfclaw source tree into _internal/wolfclaw_app
         # This copies everything we just staged above (including api/ and static/)
         f"--add-data", f"{staging_dir}{sep}wolfclaw_app",
+        
+        # Explicitly bundle all of litellm to include the JSON data files that --collect-all sometimes misses
+        f"--add-data", f"{os.path.dirname(litellm.__file__)}{sep}litellm",
         
         # Collect FastAPI, Uvicorn, and LiteLLM runtime dependencies
         "--collect-all", "litellm",

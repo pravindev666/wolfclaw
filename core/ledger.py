@@ -3,8 +3,9 @@ import json
 import hashlib
 from datetime import datetime
 from pathlib import Path
+from core.paths import get_data_dir
 
-LEDGER_DIR = Path("data/ledger")
+LEDGER_DIR = get_data_dir() / "ledger"
 LEDGER_DIR.mkdir(parents=True, exist_ok=True)
 
 def _get_ledger_file(bot_id: str) -> Path:

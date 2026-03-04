@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 from .tunnels import tunnel
 from .bot_manager import read_workspace_file, write_workspace_file
+from core.paths import get_data_dir
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +14,7 @@ class MemorySync:
     """
     
     def __init__(self):
-        self.sync_dir = Path("data/sync_cache")
+        self.sync_dir = get_data_dir() / "sync_cache"
         self.sync_dir.mkdir(parents=True, exist_ok=True)
 
     def push_memory(self, bot_id: str):

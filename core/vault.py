@@ -6,8 +6,9 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
+from core.paths import get_data_dir
 
-VAULT_DIR = Path("data/vault")
+VAULT_DIR = get_data_dir() / "vault"
 VAULT_DIR.mkdir(parents=True, exist_ok=True)
 KEY_FILE = VAULT_DIR / ".master.key"
 VAULT_FILE = VAULT_DIR / "secrets.enc"

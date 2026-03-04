@@ -3,10 +3,11 @@ import json
 import logging
 from pathlib import Path
 from typing import Optional, Dict
+from core.paths import get_data_dir
 
 logger = logging.getLogger(__name__)
 
-CACHE_DIR = Path("data/vision_cache")
+CACHE_DIR = get_data_dir() / "vision_cache"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 class VisionCache:
